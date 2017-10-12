@@ -14,7 +14,7 @@ class Router
 
     private $host;
 
-    private $routes;
+    private $routes = [];
 
     private $dispatcher;
 
@@ -23,21 +23,28 @@ class Router
         $this->host = $host;
     }
 
-    public function add($key, $pattern, $controller, $method = "GET"){
+    public function add($key, $pattern, $controller, $method = "GET")
+    {
         $this->routes[$key] = [
-            'pattern'    => $pattern,
+            'pattern' => $pattern,
             'controller' => $controller,
-            'method'     => $method
+            'method' => $method
         ];
     }
 
-    public function dispatch($method, $uri){
+    public function dispatch($method, $uri)
+    {
 
+        return $this->getDispatcher()->dispatch($method, $uri);
     }
 
-    public function getDispatcher(){
-        if($this->dispatcher == null){
-
+    public function getDispatcher()
+    {
+        if ($this->dispatcher == null) {
+            $this->dispatcher = new UrlDispatcher();
+            foreach ($this->routes as $route) {
+                $this->dispatcher->register($route['method'], $route['pattern'], $route['controller']);
+            }
         }
 
         return $this->dispatcher;

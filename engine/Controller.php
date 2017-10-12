@@ -12,8 +12,14 @@ namespace Engine;
 abstract class Controller
 {
 
-    public function __construct(\Engine\DI\DI $di)
+    /**
+     * @var DI\DI
+     */
+    protected $di;
+
+    public function __construct(DI\DI $di)
     {
+        $this->di = $di;
     }
 
 }

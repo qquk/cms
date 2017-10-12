@@ -40,6 +40,26 @@ class UrlDispatcher
         return isset($this->routes[$method]) ? $this->routes[$method] : [];
     }
 
+    public function register($method, $pattern, $controller)
+    {
+
+        $convert = $this->convertPattern($pattern);
+        $this->routes[strtoupper($method)][$convert] = $controller;
+    }
+
+    public function convertPattern($pattern)
+    {
+        if (strpos($pattern, '(') === false) {
+            return $pattern;
+        }
+        return preg_replace_callback("#\((\w+):(\w+)\)#", [$this, 'replacePattern'], $pattern);
+    }
+
+    public function replacePattern($matches)
+    {
+        return "(?<" . $matches[1] . ">" . strtr($matches[2], $this->patterns) . ")";
+    }
+
 
     public function dispatch($method, $uri)
     {
@@ -48,10 +68,21 @@ class UrlDispatcher
         if (array_key_exists($uri, $routes)) {
             return new DispatchedRoute($routes[$uri]);
         }
+
+        return $this->doDispatch($method, $uri);
     }
 
     public function doDispatch($method, $uri)
     {
+        $routes = $this->routes(strtoupper($method));
 
+        foreach ($routes as $route => $controller) {
+            $pattern = "#^" . $route . "$#s";
+            if (preg_match($pattern, $uri, $parameters)) {
+                return new DispatchedRoute($controller, $parameters);
+            }
+        }
+
+        return new DispatchedRoute("ErrorController:page404");
     }
 }

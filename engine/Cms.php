@@ -9,6 +9,7 @@
 namespace Engine;
 
 
+use Engine\Core\Router\DispatchedRoute;
 use Engine\Helper\Common;
 
 class Cms
@@ -33,9 +34,30 @@ class Cms
     }
 
     public function run(){
-       echo "hello from cms";
 
-       $routerDispath = $this->router->dispatch(Common::getMethod())
+       $this->router->add('home', '/', 'HomeController:index');
+       $this->router->add('news_one', '/news/(id:int)', 'HomeController:news');
+       $this->router->add('product', '/product/12', 'ProductController:index');
+
+       $routerDispatch = $this->router->dispatch(Common::getMethod(), Common::getPathUrl());
+
+//       if($routerDispatch === null){
+//           $routerDispatch = new DispatchedRoute('ErrorController:page404');
+//       }
+
+       list($class, $action) = explode(':', $routerDispatch->getController(), 2);
+
+       $class = '\\Cms\\Controller\\' . $class;
+       $action = $action . 'Action';
+       call_user_func_array([new $class($this->di), $action], $routerDispatch->getParameters());
+       
+//       echo "<pre>";
+//          var_dump($class);
+//       echo "</pre>";
+//        echo "<pre>";
+//        var_dump($action);
+//        echo "</pre>";
+//       die;
     }
 
 }
